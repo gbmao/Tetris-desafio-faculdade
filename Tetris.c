@@ -2,20 +2,37 @@
 #include <stdlib.h>
 #include <time.h>
 
-
 // Desafio Tetris Stack
 // Tema 3 - Integração de Fila e Pilha
 // Este código inicial serve como base para o desenvolvimento do sistema de controle de peças.
 // Use as instruções de cada nível para desenvolver o desafio.
+#define MAX 5
 int ID = 0;
-typedef struct Piece {
+typedef struct Piece
+{
     char name;
     int id;
-}Piece;
+} Piece;
+
+typedef struct Queue
+{
+    Piece itens[MAX];
+    int first;
+    int last;
+    int total;
+} Queue;
 
 struct Piece makePiece();
+void removePiece(Queue *q, Piece *p);
+void initializeQueue(Queue *q);
+int queueIsFull(Queue *q);
+int queueIsEmpty(Queue *q);
+void gameLogic();
+void clearInput();
+void clearTerminal();
 
-int main() {
+int main()
+{
 
     srand(time(NULL));
 
@@ -31,11 +48,13 @@ int main() {
     //      0 - Sair
     // - A cada remoção, insira uma nova peça ao final da fila.
 
-    struct Piece p = makePiece();
-    printf("Nome: %c, id: %d\n", p.name, p.id);
+    // struct Piece p = makePiece();
+    // printf("Nome: %c, id: %d\n", p.name, p.id);
 
-     struct Piece b = makePiece();
-    printf("Nome: %c, id: %d\n", b.name, b.id);
+    //  struct Piece b = makePiece();
+    // printf("Nome: %c, id: %d\n", b.name, b.id);
+
+    gameLogic();
 
     // 🧠 Nível Aventureiro: Adição da Pilha de Reserva
     //
@@ -47,7 +66,6 @@ int main() {
     //      3 - Usar peça da reserva (remover do topo da pilha)
     // - Exiba a pilha junto com a fila após cada ação com mostrarPilha().
     // - Mantenha a fila sempre com 5 peças (repondo com gerarPeca()).
-
 
     // 🔄 Nível Mestre: Integração Estratégica entre Fila e Pilha
     //
@@ -66,12 +84,12 @@ int main() {
     //      4 - Trocar peça da frente com topo da pilha
     //      5 - Trocar 3 primeiros da fila com os 3 da pilha
 
-
     return 0;
 }
 
-struct Piece makePiece(){
-     struct Piece p;
+struct Piece makePiece()
+{
+    struct Piece p;
 
     switch (rand() % 4)
     {
@@ -82,15 +100,139 @@ struct Piece makePiece(){
         p.name = 'O';
         break;
     case 2:
-        p.name = 'T'; 
+        p.name = 'T';
         break;
     case 3:
         p.name = 'L';
-        break;    
+        break;
     default:
         break;
     }
     ID++;
     p.id = ID;
     return p;
+}
+
+void initializeQueue(Queue *q)
+{
+    q->first = 0;
+    q->last = 0;
+    q->total = 0;
+}
+
+int queueIsFull(Queue *q)
+{
+    return q->total == MAX;
+}
+
+int queueIsEmpty(Queue *q)
+{
+    return q->total == 0;
+}
+
+void insert(Queue *q, Piece p)
+{
+    if (queueIsFull(q))
+    {
+        printf("Fila cheia. Nao e possivel inserir.\n");
+        return;
+    }
+
+    q->itens[q->last] = p;
+    q->last = (q->last + 1) % MAX;
+    q->total++;
+}
+
+void removePiece(Queue *q, Piece *p)
+{
+    if (queueIsEmpty(q))
+    {
+        printf("A lista esta vazia!\n");
+        return;
+    }
+
+    *p = q->itens[q->first];
+    q->first = (q->first + 1) % MAX;
+    q->total--;
+}
+
+void showQueue(Queue *q)
+{
+    printf("Fila: ");
+    for (int i = 0, idx = q->first; i < q->total; i++, idx = (idx + 1) % MAX)
+    {
+        printf("[%c, %d] ", q->itens[idx].name, q->itens[idx].id);
+    }
+    printf("\n");
+}
+
+int showMenu()
+{
+    int response;
+    printf("---TETRIS---\n\n");
+    printf("1. Jogar peca(remover primeira peca)\n");
+    printf("2. Inserir nova peca\n");
+    printf("Digite a opcao: ");
+    scanf("%d", &response);
+    clearInput();
+    return response;
+}
+
+void gameLogic()
+{
+    Queue *q = malloc( sizeof(Queue));
+    initializeQueue(q);
+
+    int flag = 1;
+
+    while (flag)
+    {
+
+        switch (showMenu())
+        {
+        case 1:
+            clearTerminal();
+           // printf("jogando uma peca\n");
+            Piece p = {'-', -1};
+            removePiece(q, &p);
+            // if (p.id != -1)
+            // {
+            //     printf("%c, %d foi removido\n", p.name, p.id);
+            // }
+            showQueue(q);
+            break;
+
+        case 2:
+            clearTerminal();
+            //printf("Inserindo peca!\n");
+            insert(q, makePiece());
+            showQueue(q);
+            break;
+        // case 2:
+        //     printf("Mostrando lista: \n");
+        //     break;
+        default:
+            clearTerminal();
+            printf("Saindo....\n");
+            flag = 0;
+            break;
+        }
+    }
+
+    free(q);
+}
+
+void clearTerminal()
+{
+    for (int i = 0; i < 30; i++)
+    {
+        printf("\n");
+    }
+}
+
+void clearInput()
+{
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
 }
