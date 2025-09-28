@@ -1,11 +1,23 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 
 // Desafio Tetris Stack
 // Tema 3 - Integração de Fila e Pilha
 // Este código inicial serve como base para o desenvolvimento do sistema de controle de peças.
 // Use as instruções de cada nível para desenvolver o desafio.
+int ID = 0;
+typedef struct Piece {
+    char name;
+    int id;
+}Piece;
+
+struct Piece makePiece();
 
 int main() {
+
+    srand(time(NULL));
 
     // 🧩 Nível Novato: Fila de Peças Futuras
     //
@@ -19,7 +31,11 @@ int main() {
     //      0 - Sair
     // - A cada remoção, insira uma nova peça ao final da fila.
 
+    struct Piece p = makePiece();
+    printf("Nome: %c, id: %d\n", p.name, p.id);
 
+     struct Piece b = makePiece();
+    printf("Nome: %c, id: %d\n", b.name, b.id);
 
     // 🧠 Nível Aventureiro: Adição da Pilha de Reserva
     //
@@ -52,4 +68,29 @@ int main() {
 
 
     return 0;
+}
+
+struct Piece makePiece(){
+     struct Piece p;
+
+    switch (rand() % 4)
+    {
+    case 0:
+        p.name = 'I';
+        break;
+    case 1:
+        p.name = 'O';
+        break;
+    case 2:
+        p.name = 'T'; 
+        break;
+    case 3:
+        p.name = 'L';
+        break;    
+    default:
+        break;
+    }
+    ID++;
+    p.id = ID;
+    return p;
 }
