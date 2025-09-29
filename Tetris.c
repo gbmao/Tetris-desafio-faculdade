@@ -46,6 +46,8 @@ void pop(Stack *s, Piece *removed); // remove top element
 void showStack(Stack *s);
 
 // game logic
+void swapOnePiece(Queue *q, Stack *s);
+void swapThreePieces(Queue *q, Stack *s);
 void gameLogic();
 void clearInput();
 void clearTerminal();
@@ -183,15 +185,60 @@ void showQueue(Queue *q)
     printf("\n");
 }
 
+void swapOnePiece(Queue *q, Stack *s) {
+    if(stackIsEmpty(s)) {
+        printf("\n\nA pilha esta vazia!\n");
+        return;
+    }
+    Piece p;
+    p = q->itens[q->first];
+    pop(s, &q->itens[q->first]);
+    push(s, p);
+}
+
+void swapThreePieces(Queue *q, Stack *s) {
+    if(!stackIsFull(s)) {
+        printf("\n\nA pilha nao esta cheia!\n");
+        return;
+    }
+    Piece p1;
+    Piece p2;
+    Piece p3;
+
+    Stack aux;
+    initializeStack(&aux);
+
+    for (int i = 0; i < MAX_STACK; i++)
+    {
+        removePiece(q, &p1);
+        //printf("%c\n", p1.name);
+        push(&aux, p1);
+    }
+    
+    q->first = (q->first - MAX_STACK) % MAX;
+    // q->first = (q->first -1) % MAX;
+    // q->first = (q->first -1) % MAX;
+    q->last = q->first;
+    
+    for (int i = 0; i < MAX_STACK; i++)
+    {   
+        pop(s, &p2);
+        // printf("aqui\n");
+        insert(q, p2);
+    }
+    *s = aux;
+}
+
 int showMenu()
 {
     int response;
 
     printf("---TETRIS---\n\n");
     printf("1. Jogar peca(remover primeira peca)\n");
-    printf("2. Inserir nova peca\n");
-    printf("3. Reservar peca\n");
-    printf("4. Usar peca reservada\n");
+    printf("2. Reservar peca\n");
+    printf("3. Usar peca reservada\n");
+    printf("4. Trocar peca da frente da fila com topo da pilha\n");
+    printf("5. Trocar os 3 primeiros da fila com os 3 da pilha\n");
     printf("0. Sair\n");
     printf("Digite a opcao: ");
     scanf("%d", &response);
@@ -202,7 +249,12 @@ int showMenu()
 void gameLogic()
 {
     Queue *q = malloc(sizeof(Queue));
-    initializeQueue(q);
+    initializeQueue(q); 
+    while (!queueIsFull(q)) // alimenta queue ate ficar chei
+    {
+        insert(q, makePiece());
+    }
+    
     Stack stack;
     initializeStack(&stack);
 
@@ -228,15 +280,6 @@ void gameLogic()
             break;
 
         case 2:
-
-            // printf("Inserindo peca!\n");
-            insert(q, makePiece());
-            // showQueue(q);
-            break;
-        // case 2:
-        //     printf("Mostrando lista: \n");
-        //     break;
-        case 3:
             Piece b = {'-', -1};
             removePiece(q, &b);
             if (b.id < 0)
@@ -248,9 +291,16 @@ void gameLogic()
 
             push(&stack, b);
             break;
-        case 4:
+        case 3:
             Piece t = {'-', -1};
             pop(&stack, &t);
+            break;
+        case 4:
+            swapOnePiece(q, &stack);
+            break;   
+            
+        case 5:
+            swapThreePieces(q, &stack);
             break;
         default:
             clearTerminal();
