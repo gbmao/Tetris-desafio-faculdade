@@ -7,6 +7,7 @@
 // Este código inicial serve como base para o desenvolvimento do sistema de controle de peças.
 // Use as instruções de cada nível para desenvolver o desafio.
 #define MAX 5
+#define MAX_STACK 3
 int ID = 0;
 typedef struct Piece
 {
@@ -22,11 +23,29 @@ typedef struct Queue
     int total;
 } Queue;
 
+typedef struct Stack
+{
+    Piece itens[MAX_STACK];
+    int top;
+} Stack;
+
 struct Piece makePiece();
+
+// Queue logic
 void removePiece(Queue *q, Piece *p);
 void initializeQueue(Queue *q);
 int queueIsFull(Queue *q);
 int queueIsEmpty(Queue *q);
+
+// stack logic
+void initializeStack(Stack *s);
+int stackIsFull(Stack *s);
+int stackIsEmpty(Stack *s);
+void push(Stack *s, Piece new);     // add new element to top
+void pop(Stack *s, Piece *removed); // remove top element
+void showStack(Stack *s);
+
+// game logic
 void gameLogic();
 void clearInput();
 void clearTerminal();
@@ -43,10 +62,6 @@ int main()
     // - Crie funções como inicializarFila(), enqueue(), dequeue(), filaCheia(), filaVazia().
     // - Cada peça deve ser gerada automaticamente com um tipo aleatório e id sequencial.
     // - Exiba a fila após cada ação com uma função mostrarFila().
-    // - Use um menu com opções como:
-    //      1 - Jogar peça (remover da frente)
-    //      0 - Sair
-    // - A cada remoção, insira uma nova peça ao final da fila.
 
     // struct Piece p = makePiece();
     // printf("Nome: %c, id: %d\n", p.name, p.id);
@@ -147,7 +162,9 @@ void removePiece(Queue *q, Piece *p)
 {
     if (queueIsEmpty(q))
     {
-        printf("A lista esta vazia!\n");
+        printf("\n\nA lista esta vazia!\n");
+        printf("Aperte enter para voltar\n");
+        getchar();
         return;
     }
 
@@ -169,9 +186,13 @@ void showQueue(Queue *q)
 int showMenu()
 {
     int response;
+
     printf("---TETRIS---\n\n");
     printf("1. Jogar peca(remover primeira peca)\n");
     printf("2. Inserir nova peca\n");
+    printf("3. Reservar peca\n");
+    printf("4. Usar peca reservada\n");
+    printf("0. Sair\n");
     printf("Digite a opcao: ");
     scanf("%d", &response);
     clearInput();
@@ -180,43 +201,64 @@ int showMenu()
 
 void gameLogic()
 {
-    Queue *q = malloc( sizeof(Queue));
+    Queue *q = malloc(sizeof(Queue));
     initializeQueue(q);
+    Stack stack;
+    initializeStack(&stack);
 
     int flag = 1;
 
     while (flag)
     {
-
+        showQueue(q);
+        showStack(&stack);
         switch (showMenu())
         {
         case 1:
-            clearTerminal();
-           // printf("jogando uma peca\n");
+            // clearTerminal();
+            //  printf("jogando uma peca\n");
             Piece p = {'-', -1};
             removePiece(q, &p);
             // if (p.id != -1)
             // {
             //     printf("%c, %d foi removido\n", p.name, p.id);
             // }
-            showQueue(q);
+            insert(q, makePiece());
+
             break;
 
         case 2:
-            clearTerminal();
-            //printf("Inserindo peca!\n");
+
+            // printf("Inserindo peca!\n");
             insert(q, makePiece());
-            showQueue(q);
+            // showQueue(q);
             break;
         // case 2:
         //     printf("Mostrando lista: \n");
         //     break;
+        case 3:
+            Piece b = {'-', -1};
+            removePiece(q, &b);
+            if (b.id < 0)
+            {
+                break;
+            }
+            
+            insert(q, makePiece());
+
+            push(&stack, b);
+            break;
+        case 4:
+            Piece t = {'-', -1};
+            pop(&stack, &t);
+            break;
         default:
             clearTerminal();
             printf("Saindo....\n");
             flag = 0;
             break;
         }
+        clearTerminal();
     }
 
     free(q);
@@ -235,4 +277,58 @@ void clearInput()
     int c;
     while ((c = getchar()) != '\n' && c != EOF)
         ;
+}
+
+void initializeStack(Stack *s)
+{
+    s->top = -1;
+}
+
+int stackIsEmpty(Stack *s)
+{
+    return s->top == -1;
+}
+
+int stackIsFull(Stack *s)
+{
+    return s->top == MAX_STACK - 1;
+}
+
+void push(Stack *s, Piece new)
+{
+    if (stackIsFull(s))
+    {
+        printf("\n\nPilha cheia. Nao e possivel inserir.\n");
+        printf("Aperte enter para voltar\n");
+        getchar();
+        return;
+    }
+
+    s->top++;
+    s->itens[s->top] = new;
+}
+
+void pop(Stack *s, Piece *removed)
+{
+    if (stackIsEmpty(s))
+    {
+        printf("\n\nPilha vazia. Nao e possivel remover\n");
+        printf("Aperte enter para voltar\n");
+        getchar();
+        return;
+    }
+
+    *removed = s->itens[s->top];
+    s->top--;
+}
+
+void showStack(Stack *s)
+{
+    printf("Pilha (topo -> base): \n");
+
+    for (int i = s->top; i >= 0; i--)
+    {
+        printf("[%c, %d] ", s->itens[i].name, s->itens[i].id);
+    }
+    printf("\n");
 }
